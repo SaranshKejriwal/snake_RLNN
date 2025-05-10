@@ -12,10 +12,10 @@ class simpleNN:
 
     #this will inherit its hyper parameters from the model class. This is only a single neural network
     
-    input_layer_neurons = 9 #the state vector has 9 binary values from the decisionRewardCalculator.getStateVectorForNetwork function
+    input_layer_neurons = 9 #the state vector has FIXED 9 binary values from the decisionRewardCalculator.getStateVectorForNetwork function
 
-    #Note - 10 neurons has been selected somewhat randomly for now, just to kick things off....
-    hidden_layer_neurons = 12 #the W1 vector will be a hidden_layer_neurons X input_layer_neurons matrix
+    #Note - 12 neurons has been selected somewhat randomly for now, just to kick things off....can even have hundreds of neurons
+    hidden_layer_neurons = 50 #the W1 vector will be a hidden_layer_neurons X input_layer_neurons matrix
 
     output_layer_neurons = 3 # since output will have 3 dimensional values only - corresponding to turn left, turn right, do nothing
     
@@ -24,8 +24,8 @@ class simpleNN:
 
     learning_rate = 0.01 #for updating params
     
-    epsilon = 0.999 #Randomness parameter to have high exploration earlier and high exploitation later. This value will reduce as training iterations increase
-    gamma = 0 #discount rate for future rewards. 0 indicates that we are interested in quick rewards
+    epsilon = 0.999 #Randomness parameter to have high exploration earlier and high exploitation later. This value will reduce as training iterations increase.
+    gamma = 0.9 #discount rate for future rewards. 0 indicates that we are interested in quick rewards
 
     def __init__(self):
         #constructor
@@ -48,9 +48,8 @@ class simpleNN:
         #numSamples = np.shape(y_train)[0] #y.size will give number of cells, not number of rows.
 
         Z1, A1, Z2, A2 = self.forwardProp(x_train)
-
         #Note that in supervised learning, we would provide the expected output value that the model should have achieved. In RL, the loss is defined based on the max reward that the decision could have achieved.
-        #expectedOutputProbability = self.updateLossValue(A2,y_train)
+        expectedOutputProbability = self.updateLossValue(A2,y_train)
 
         #print("loss at cell position ", cellPosition)
         #print(self.currentLoss)
@@ -65,9 +64,9 @@ class simpleNN:
             print("Z2 ",Z2)
             print("A2 ",A2)
 
-        #dW2, dB2, dW1, dB1 = self.backProp(expectedOutputProbability, A1,Z1,self.W2,x_train)
+        dW2, dB2, dW1, dB1 = self.backProp(expectedOutputProbability, A1,Z1,self.W2,x_train)
 
-        #self.updateParams(dW2, dB2, dW1, dB1)
+        self.updateParams(dW2, dB2, dW1, dB1)
         '''
         print("Z1:",Z1.shape)
         print("A1:",A1.shape)
@@ -83,9 +82,6 @@ class simpleNN:
         
         #simply run forward prop without training the model
         Z1, A1, Z2, A2 = self.forwardProp(x_train)
-
-        #print(A2)#without training, this output has a distribution of [0.33, 0.33, 0.33], which is correct
-
         return self.getDecisionFromPrediction(A2)
 
     def forwardProp(self, x_train):
@@ -106,13 +102,12 @@ class simpleNN:
         
         Z2 = np.add(self.W2.dot(A1) , self.b2) #equivalent to Z2 = W2.A1 + b1     Note that A1 is NOT transposed.
 
-        #should be of shape (9,m)
         A2 = snakeMaths.softmax(Z2, softmax_axis=0) #should be of shape (3,m) 
 
         return Z1_normalized, A1, Z2, A2
 
     #Entry point - this is where the modelContainer passes the state data to the Model
-    def predictNextStep(self,stateVector, reward, isTraining, currentIterationCounter):
+    def predictNextStep(self,stateVector, reward, isTraining, currentIterationCounter, idealDecision):
 
         #update epsilon value to select a random outcome with a decreasing probability
         self.epsilon = 1/(1 + (currentIterationCounter/100)) #1/(1+ x/100) will tend towards 0 steadily as x increases
@@ -121,7 +116,7 @@ class simpleNN:
             # model is training, so weights will be updated via forward prop and backprop
             # when the model makes a decision, ignore that decision and get the model to explore with a certain epsilon probability.
             # as the iteration counter increases, epsilon tends to 0 
-            return self.getRandomExploreDecisionByEpsilon( self.trainModel(stateVector,0)) #the output of tranModel is already made binary
+            return self.getRandomExploreDecisionByEpsilon( self.trainModel(stateVector,idealDecision)) #the output of tranModel is already made binary
 
         else:
             # model is in test. Weights will not be updated and only forward prop will be run
@@ -132,18 +127,16 @@ class simpleNN:
 
     def updateLossValue(self, A2, y_train):
 
-        #Note - Each neural network applies to an individual cell of the sudoku, so Loss will actually be an 81-dimension array
-
-        yOneHot = snakeMaths.getOneHotVector(y_train)
+        #A2 is of the format [0.4,0.3,0.3] and y_train is already one-Hot -> [0,1,0]
 
         #get the indices from the predictions, corresponding to the outputs y of interest.
-        probabilityOfExpectedOutput = np.multiply(A2,yOneHot.T) #get the probability of ONLY the expected output via element-wise multiplication
+        probabilityOfExpectedOutput = np.multiply(A2,y_train) #get the probability of ONLY the expected output via element-wise multiplication
 
         #using negative log likelihood method to calculate loss value for all the training examples
         try:
             lossVector = -1 * np.log10(A2)   
             #self.currentLoss = (np.multiply(lossVector,yOneHot.T).sum())/numExamples #get the loss against the indices of the expected output value.
-            self.currentLoss = np.sum((np.multiply(lossVector,yOneHot.T)))
+            self.currentLoss = np.sum((np.multiply(lossVector,y_train.T)))
 
             #self.currentLoss = (-1 * np.sum(np.log(probabilityOfExpectedOutput)))/numExamples
             #Note - Do NOT attempt an element wise multiplication and THEN take a log of that, because most elements there will be 0, and log(0) is -infinity
@@ -151,16 +144,15 @@ class simpleNN:
         except:
             print("Negative Log Likelihood failed for: ", A2) #needed in case there are any "Not-a-number" issues.      
 
-        return probabilityOfExpectedOutput
+        return probabilityOfExpectedOutput #this will be used in the BackProp
 
     def backProp(self, A2y, A1, Z1, W2,x_train):
 
-        #Refer to implementation notes in Word document. probabilityOfExpectedOutput is equivalent to A2y
 
         dW2 = (-1)*(A2y.dot(A1.T))#check implementation notes -> A2y is (9,m) and A1 is (12,m); dW2 should be (9,12), same as W2
-        dA1 = (-1)*((W2.T).dot(A2y)) #this is an intermediate step used to calculate dW1 and dB1; dA1 should be (12,2), same as A1
+        dA1 = (-1)*((W2.T).dot(A2y)) #this is an intermediate step used to calculate dW1 and dB1;
 
-        dB2 = (-1)*(np.sum(A2y, axis=1, keepdims=True))# dB2 should be (9,1), same as B2
+        dB2 = (-1)*(np.sum(A2y, axis=1, keepdims=True))
 
         dZ1 = np.multiply(dA1,snakeMaths.dTanh(Z1)) #note that this is an element-wise multiplication, not a dot-product
         #size of dZ1 should be (12,m), same as Z1
@@ -171,7 +163,8 @@ class simpleNN:
 
         #IMPORTANT - keepdims = True ensures that dB1 is of shape (12,1) and not (12,)
 
-        dW1 = dZ1.dot(x_train)
+        #print(self.W1.shape)
+        dW1 = dZ1.dot(x_train.T)
 
         return dW2, dB2, dW1, dB1
 
@@ -219,7 +212,8 @@ class simpleNN:
 
         #get a random float between 0 and 1. If that is less than epsilon, return a random decision, else return the model decision. 
         #Epsilon will decrease over time, so the probability of getting a random value lower than epsilon will also reduce
-        if np.random.rand() < self.epsilon: 
+        if np.random.rand() < self.epsilon:
+
             return snakeMaths.getRandomDirectionDecision()
         else:
             return modelDecision

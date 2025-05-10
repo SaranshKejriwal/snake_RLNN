@@ -7,9 +7,11 @@ import snakeMaths
 
 class snakeObject:
 
-    
-    snakeBody = [[100, 50], [90, 50], [80, 50],  [70, 50]] #snake body is of length 4 blocks at the start.
-    snakeHeadLocation = np.array([100, 50]) #starting position of the snake on the game board
+    snakeStartingHead = np.array([200, 200])
+    snakeStartingDirection = np.array([1,0])
+
+    snakeBody = [[200, 200], [190, 200], [180, 200],  [170, 200], [160,200]] #snake body is of length 4 blocks at the start.
+    snakeHeadLocation = np.array([200, 200]) #starting position of the snake on the game board
     #numpy will be used for accurate array comparisons
 
     #Decision vectors from the neural network - PLACEHOLDERS for now.
@@ -74,6 +76,8 @@ class snakeObject:
 
     #in training mode, bring the snake back to its original starting state if the snake dies.
     def resetSnake(self):
-        self.snakeBody = [[100, 50], [90, 50], [80, 50],  [70, 50]] #snake body is of length 4 blocks at the start.
-        self.snakeHeadLocation = np.array([100, 50]) #starting position of the snake on the game board
+        self.snakeBody.clear() #clear existing list
+        self.snakeBody = [[200, 200], [190, 200], [180, 200],  [170, 200],[160,200]] #list reference cannot be done in the same way as np array, hence writing the whole value
+        self.snakeHeadLocation = self.snakeStartingHead
+        self.snakeDirection = self.snakeStartingDirection
         return 0

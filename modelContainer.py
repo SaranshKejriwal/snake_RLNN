@@ -53,8 +53,22 @@ class modelContainer:
 
         #increase the iteration counter by 1, to reduce the probability of making random decisions as 
 
-        #this is the neural network that we want to train.
-        return self.modelNetwork.predictNextStep(decisionRewardCalculator.getStateVectorForNetwork(gameWindowX, gameWindowY, snakeHead, snakeBody, snakeDirection, foodLocation), currentReward, isTraining, self.currentIterationCounter)
+
+        #this is the simple neural network that we want to train.
+
+        #get the ideal highest decision to feed to the model - this seems like standard supervised learning.
+        idealDecision = decisionRewardCalculator.getHighestRewardDecision(gameWindowX, gameWindowY, snakeHead, snakeBody, snakeDirection, foodLocation).reshape(3,1)
+        
+        #increase the IterationCounter to reduce the epsilon with each iteration
+        self.currentIterationCounter += 1
+
+                #print iteration log
+        if self.currentIterationCounter % 10000 == 0:
+            print('Iterations: ', self.currentIterationCounter)
+
+        return self.modelNetwork.predictNextStep(decisionRewardCalculator.getStateVectorForNetwork(gameWindowX, gameWindowY, snakeHead, snakeBody, snakeDirection, foodLocation), currentReward, isTraining, self.currentIterationCounter, idealDecision)
+        
+
 
 
         #this is a test code to run the initial model

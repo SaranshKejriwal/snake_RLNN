@@ -77,7 +77,7 @@ def getStateVectorForNetwork(gameWindowX, gameWindowY, snakeHead, snakeBody, sna
     stateVector = np.array([
             
         snakeHead[0]/gameWindowX, #snakeHead X coordinate - normalized to (0,1) by dividing with gameWindowX
-        snakeHead[0]/gameWindowX,
+        snakeHead[1]/gameWindowY,
 
         snakeDirection[0], #X coordinate of direction
         snakeDirection[1], #Y coordinate of direction
@@ -107,5 +107,4 @@ def getStateVectorForNetwork(gameWindowX, gameWindowY, snakeHead, snakeBody, sna
     - foodLocation X coordinate - normalized to (0,1) by dividing with gameWindowX
     - foodLocation Y coordinate - normalized to (0,1) by dividing with gameWindowY
     '''
-
     return np.reshape(stateVector,(9,1)) #this reshape is important for the matrix multiplication to work

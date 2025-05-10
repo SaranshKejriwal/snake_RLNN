@@ -27,12 +27,14 @@ class snakeGame:
     snake = snakeObject()
 
     #speed of the snake movement - faster for training
-    gameSpeed = 100
+    gameSpeed = 200
 
     food = food(xLimit = window_x, yLimit = window_y)
 
     #current score is a running placeholder for the score while the game is ongoing. Resets to 0 
     currentScore = 0
+
+    trainingGameCounter = 1 #this will track how many games were played during training
 
     def __init__(self):
         self.game_window = pygame.display.set_mode((self.window_x, self.window_y))
@@ -56,9 +58,9 @@ class snakeGame:
         fps = pygame.time.Clock()
 
         if isTraining:
-            self.gameSpeed = 200 #faster runthrough for training
+            self.gameSpeed = 100 #faster runthrough for training
         else:
-            self.gameSpeed = 200
+            self.gameSpeed = 100
 
         print("starting new game...")
 
@@ -72,8 +74,10 @@ class snakeGame:
             if((self.snake.getSnakeHead() == self.food.getFoodLocation()).all()):
                 #snake has reached the food
                 isGrowing = True #while moving, the snake body queue will not pop
-                self.food.respawn() #move the food immediately to another random location
+                self.food.respawn(self.snake.getSnakeBody()) #move the food immediately to another random location
                 self.currentScore += 1 #increment score by 1 
+            else:
+                isGrowing = False
 
             #move the snake to the next position with/without growing it
             self.snake.move(isGrowing)
@@ -84,6 +88,7 @@ class snakeGame:
 
                 if not(isTraining):
                     #break the infinite loop and end the game while running the trained model
+
                     self.endGame()
                 else:
                     #continue to train the model if the snake is training, after resetting the snake.
@@ -93,13 +98,14 @@ class snakeGame:
             #setup the background
             self.game_window.fill(self.black) #recolor the cells that were covered by the snake earlier.
 
+            #print(len(self.snake.getSnakeBody()))
             #draw the current snake and food position, if the snake is NOT training
             for pos in self.snake.getSnakeBody():
                 pygame.draw.rect(self.game_window, self.green,pygame.Rect(pos[0], pos[1], 10, 10))
              
             pygame.draw.rect(self.game_window, self.white, pygame.Rect(self.food.getFoodLocation()[0], self.food.getFoodLocation()[1], 10, 10))
             #show score on screen
-            self.displayCurrentScore(1, self.white, 'times new roman', 20)
+            self.displayCurrentScore(self.white, 'times new roman', 20)
             # Refresh game screen
             pygame.display.update()
             # Frame Per Second /Refresh Rate as per required game speed
@@ -129,12 +135,15 @@ class snakeGame:
 
     #while in training mode, reset the game upon snake death, whilst the training continues...
     def resetGame(self):
-        print("Training...: Final score is ", self.currentScore)
+        #print("Training...: Final score is ", self.currentScore)
+
+        self.trainingGameCounter += 1
+
         self.snake.resetSnake()
         self.currentScore = 0
 
     # displaying Score function
-    def displayCurrentScore(self,choice, color, font, size):
+    def displayCurrentScore(self, color, font, size):
   
         # creating font object score_font
         score_font = pygame.font.SysFont(font, size)
@@ -142,10 +151,15 @@ class snakeGame:
         # create the display surface object 
         # score_surface
         score_surface = score_font.render('Score : ' + str(self.currentScore), True, color)
-    
+
+        games_surface = score_font.render('Games : ' + str(self.trainingGameCounter), True, color)
+        #games_surface = score_font.render('Length : ' + str(len(self.snake.getSnakeBody())), True, color)
+
         # create a rectangular object for the text
         # surface object
         score_rect = score_surface.get_rect()
+        games_rect = games_surface.get_rect()
     
         # displaying text
-        self.game_window.blit(score_surface, score_rect)
+        #self.game_window.blit(score_surface, score_rect)
+        self.game_window.blit(games_surface, games_rect)
