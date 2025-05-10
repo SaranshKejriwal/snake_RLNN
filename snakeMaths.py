@@ -1,5 +1,11 @@
 import numpy as np
+import random
 
+left = np.array([1,0,0]) #turning Left, relative to the current direction of movement
+noAction = np.array([0,1,0]) #no action is equivalent to moving in the same direction as before
+right = np.array([0,0,1]) #turning Left, relative to the current direction of movement
+
+allDecisions = np.array([left , noAction, right]) #corresponding to Turn Left, Do Nothing and Turn Right
 
 #evaluate the current Direction, and turn the snake LEFT, relative to that direction.
 def turnSnakeLeft(currentXDirection, currentYDirection):
@@ -43,49 +49,15 @@ def isGameOver(snakeHead, snakeBody, gameWindowX, gameWindowY):
             return True
     return False
 
-#this method will convert the input parameters into a normalized state vector for the model to ingest
-def getStateVectorForNetwork(gameWindowX, gameWindowY, snakeHead, snakeBody, snakeDirection, foodLocation, currentReward, isTraining):
-        
-    dangerVector = decisionRewardCalculator.getDangerVector(gameWindowX, gameWindowY, snakeHead, snakeBody, snakeDirection)
 
-    stateVector = np.array([
-            
-        snakeHead[0]/gameWindowX, #snakeHead X coordinate - normalized to (0,1) by dividing with gameWindowX
-        snakeHead[0]/gameWindowX,
+#until the neural network is made, this function will be used to randomly get a decision between turn left, turn right or do nothing
+def getRandomDirectionDecision():
+    #Return any one of the 3 decisions randomly
+    return allDecisions[random.randint(0,2)] #return any one element at random
 
-        snakeDirection[0], #X coordinate of direction
-        snakeDirection[1], #Y coordinate of direction
-
-        dangerVector[0], 
-        dangerVector[1],
-        dangerVector[2], #dangerVector needs to be expanded like this to ensure that the overall input to the network is 1-dimensional and does not become an array of arrays
-
-        foodLocation[0]/gameWindowX,#foodLocation X coordinate - normalized to (0,1) by dividing with gameWindowX
-        foodLocation[1]/gameWindowY
-            
-        ])
-        
-    '''
-    Define the state.
-    State can have the following values
-    - snakeHead X coordinate - normalized to (0,1) by dividing with gameWindowX
-    - snakeHead Y coordinate - normalized to (0,1) by dividing with gameWindowY
-
-    - NOT REQUIRED - snakeBody coordinates - This is covered in the dangerVector 
-        
-    - DirectionX - direct ingestion of 1/-1 value
-    - DirectionY - direct ingestion of 1/-1 value
-
-    - Danger directions - is it dangerous to turn left from current position? or turn right? or go straight? - THIS will account for the body of the snake
-
-    - foodLocation X coordinate - normalized to (0,1) by dividing with gameWindowX
-    - foodLocation Y coordinate - normalized to (0,1) by dividing with gameWindowY
-    - currentReward can be divided by 1000 for normalization - will always be negative
-    '''
-
-    return stateVector
-
-#Copied from old mathFunctions.py
+'''
+#Copied from old mathFunctions.py_______________
+'''
 
 def tanh(z):
     return np.tanh(z)

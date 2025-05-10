@@ -80,7 +80,7 @@ class snakeGame:
 
             #if(self.isGameOver()):
             if(snakeMaths.isGameOver(self.snake.getSnakeHead(),self.snake.getSnakeBody(),self.window_x,self.window_y)):
-                print("Game Over: Final score is ", self.currentScore)
+
 
                 if not(isTraining):
                     #break the infinite loop and end the game while running the trained model
@@ -129,6 +129,7 @@ class snakeGame:
 
     #while in training mode, reset the game upon snake death, whilst the training continues...
     def resetGame(self):
+        print("Training...: Final score is ", self.currentScore)
         self.snake.resetSnake()
         self.currentScore = 0
 

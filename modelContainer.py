@@ -1,12 +1,11 @@
 import random
-from xxlimited import foo
 import numpy as np
 
 from food import food
 from snakeGame import snakeGame
 from simpleNN import simpleNN
 import decisionRewardCalculator
-
+import snakeMaths
 
 #this class will create multiple instances of snake games, and a single instance of the neural network
 
@@ -20,6 +19,9 @@ class modelContainer:
 
     #this iteration counter will be useful to reduce the epsilon parameter in the network. As iterations increase, we want more exploitation, less exploration
     currentIterationCounter = 0
+
+    #storing all decisions this way ensures that no new objects are created at runtime
+
 
     def trainModel(self):
 
@@ -49,18 +51,14 @@ class modelContainer:
         #return decisionRewardCalculator.getHighestRewardDecision(gameWindowX, gameWindowY, snakeHead, snakeBody, snakeDirection, foodLocation)
         #note that this rewardCalculator will not be capable of any emergent properties - it will only look at the payoff of the next direction, so the snake can trap itself.
 
+        #increase the iteration counter by 1, to reduce the probability of making random decisions as 
+
         #this is the neural network that we want to train.
-        return self.modelNetwork.predictNextStep(decisionRewardCalculator.getStateVectorForNetwork(gameWindowX, gameWindowY, snakeHead, snakeBody, snakeDirection, foodLocation), currentReward, isTraining)
+        return self.modelNetwork.predictNextStep(decisionRewardCalculator.getStateVectorForNetwork(gameWindowX, gameWindowY, snakeHead, snakeBody, snakeDirection, foodLocation), currentReward, isTraining, self.currentIterationCounter)
 
 
         #this is a test code to run the initial model
-        #return self.getRandomDirectionDecision()
+        #return snakeMaths.getRandomDirectionDecision()
 
-    #until the neural network is made, this function will be used to randomly get a decision between turn left, turn right or do nothing
-    def getRandomDirectionDecision(self):
 
-        allDecisions = np.array([[1,0,0] , [0,1,0], [0,0,1]]) #corresponding to Turn Left, Do Nothing and Turn Right
-        #note that [0,0,0] is not a valid case because the neural network should be predicting one of these 3 decisions with a certain higher probability than others.
-
-        return allDecisions[random.randint(0,2)] #return any one element at random
 
