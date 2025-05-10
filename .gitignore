@@ -26,6 +26,17 @@ share/python-wheels/
 *.egg
 MANIFEST
 
+Logs/
+.vs/
+.vsconfig
+obj/
+Temp/
+Library/
+__pycache__/
+snake_RLNN.pyproj
+snake_RLNN.sln
+datasets/
+
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
