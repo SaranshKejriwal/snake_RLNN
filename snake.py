@@ -7,7 +7,7 @@ import snakeMaths
 
 class snakeObject:
 
-    snakeStartingHead = np.array([200, 200])
+
     snakeStartingDirection = np.array([1,0])
 
     snakeBody = [[200, 200], [190, 200], [180, 200],  [170, 200], [160,200]] #snake body is of length 4 blocks at the start.
@@ -19,8 +19,9 @@ class snakeObject:
     noAction = np.array([0,1,0]) #no action is equivalent to moving in the same direction as before
     right = np.array([0,0,1]) #turning Left, relative to the current direction of movement
 
+    def __init__(self,gameWindowX, gameWindowY):
+        self.resetSnake(gameWindowX,gameWindowY)
 
-    #These will form the 
     #directionX = 1 #meaning that the snake is moving right, towards +X axis. Left is -1 and 0 is no movement on X
     #directionY = 0 #1 is moving up, -1 is moving down, 0 means no movement on Y axis
     
@@ -75,9 +76,10 @@ class snakeObject:
         return self.snakeBody
 
     #in training mode, bring the snake back to its original starting state if the snake dies.
-    def resetSnake(self):
+    def resetSnake(self, gameWindowX, gameWindowY):
         self.snakeBody.clear() #clear existing list
-        self.snakeBody = [[200, 200], [190, 200], [180, 200],  [170, 200],[160,200]] #list reference cannot be done in the same way as np array, hence writing the whole value
-        self.snakeHeadLocation = self.snakeStartingHead
+        head = [((gameWindowX//20) * 10),((gameWindowY//20) * 10)] #get the center of the game as the head
+        self.snakeBody = [[head[0], head[1]], [head[0]-10, head[1]], [head[0]-20, head[1]],  [head[0]-30, head[1]],[head[0]-40,head[1]]] #list reference cannot be done in the same way as np array, hence writing the whole value
+        self.snakeHeadLocation = np.array(head)
         self.snakeDirection = self.snakeStartingDirection
         return 0

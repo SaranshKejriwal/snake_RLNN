@@ -1,5 +1,6 @@
 '''
-This class contains a single 1 hidden layer neural network. It tries to calculate the loss between the prediction and the decision that would have the highest reward.
+In simpleNN, we were trying to force the model to predict the decision with max reward, without giving the model ANY insight on the rewards
+This class will attempt to build Q-learning from scratch in python, by calculating Q values
 '''
 #from ast import Num
 from colorsys import yiq_to_rgb
@@ -7,7 +8,7 @@ from math import isnan, log
 import numpy as np
 import snakeMaths
 
-class simpleNN:
+class reinfNN:
 
     #this will inherit its hyper parameters from the model class. This is only a single neural network
     
@@ -21,7 +22,7 @@ class simpleNN:
     #this is not a hyperParam. THis value will track the loss within this specific network
     currentLoss = 9999 #initialized as a super high value to track any neurons that remain untrained in case their cell was largely populated.
 
-    learning_rate = 0.05 #for updating params
+    learning_rate = 0.01 #for updating params
     
     epsilon = 0.999 #Randomness parameter to have high exploration earlier and high exploitation later. This value will reduce as training iterations increase.
     gamma = 0.9 #discount rate for future rewards. 0 indicates that we are interested in quick rewards
@@ -42,58 +43,50 @@ class simpleNN:
         return
 
 
-    def trainModel(self, x_train, y_train, trainingIterations):
+    def trainModel(self, x_train, y_train):
         
-        numSamples = np.shape(y_train)[0] #number of rows.
+        #numSamples = np.shape(y_train)[0] #y.size will give number of cells, not number of rows.
 
-        for i in range(trainingIterations):
+        Z1, A1, Z2, A2 = self.forwardProp(x_train)
+        #Note that in supervised learning, we would provide the expected output value that the model should have achieved. In RL, the loss is defined based on the max reward that the decision could have achieved.
+        expectedOutputProbability = self.updateLossValue(A2,y_train)
 
-            Z1, A1, Z2, A2 = self.forwardProp(x_train)
-            #Note that in supervised learning, we would provide the expected output value that the model should have achieved. In RL, the loss is defined based on the max reward that the decision could have achieved.
-            expectedOutputProbability = self.updateLossValue(A2,y_train, numSamples)
+        #print("loss at cell position ", cellPosition)
+        #print(self.currentLoss)
 
-            if i%500 == 0:
-                #print loss value every 500 training iterations
-                print('iteration ',i, '; Current Loss: ', self.currentLoss)
-                
+        #reduce learning rate if loss is getting lower
+        #self.adaptLearningRate(cellPosition)
 
-            #print("loss at cell position ", cellPosition)
-            #print(self.currentLoss)
+        if(isnan(self.currentLoss)): # just for seeing any issues in the logs
+            print("Non-numeric Loss found at cell level. Printing parameters:")
+            print("Z1 ",Z1)
+            print("A1 ",A1)
+            print("Z2 ",Z2)
+            print("A2 ",A2)
 
-            #reduce learning rate if loss is getting lower
-            #self.adaptLearningRate(cellPosition)
+        dW2, dB2, dW1, dB1 = self.backProp(expectedOutputProbability, A1,Z1,self.W2,x_train)
 
-            if(isnan(self.currentLoss)): # just for seeing any issues in the logs
-                print("Non-numeric Loss found at cell level. Printing parameters:")
-                print("Z1 ",Z1)
-                print("A1 ",A1)
-                print("Z2 ",Z2)
-                print("A2 ",A2)
-
-            dW2, dB2, dW1, dB1 = self.backProp(expectedOutputProbability, A1,Z1,self.W2,x_train)
-
-            self.updateParams(dW2, dB2, dW1, dB1)
-            '''
-            print("Z1:",Z1.shape)
-            print("A1:",A1.shape)
-            print("Z2:",Z2.shape)
-            print("A2:",A2.shape)
-            '''
-            #print(A2)#without training, this output has a distribution of [0.33, 0.33, 0.33], which is correct
+        self.updateParams(dW2, dB2, dW1, dB1)
+        '''
+        print("Z1:",Z1.shape)
+        print("A1:",A1.shape)
+        print("Z2:",Z2.shape)
+        print("A2:",A2.shape)
+        '''
+        #print(A2)#without training, this output has a distribution of [0.33, 0.33, 0.33], which is correct
 
         return self.getDecisionFromPrediction(A2)
 
 
-    def runModel(self, x_test):
+    def runModel(self, x_train):
         
         #simply run forward prop without training the model
-        Z1, A1, Z2, A2 = self.forwardProp(x_test)
+        Z1, A1, Z2, A2 = self.forwardProp(x_train)
         return self.getDecisionFromPrediction(A2)
 
     def forwardProp(self, x_train):
         
-
-        Z1 = np.add(self.W1.dot(x_train.T) , self.b1) #equivalent to Z1 = W1.X1_T + b1; should be of shape (12,m)
+        Z1 = np.add(self.W1.dot(x_train) , self.b1) #equivalent to Z1 = W1.X1_T + b1; should be of shape (12,m)
 
 
         #Normalization required at this step for smoothing. Because Z1 values in just 10 iterations will start to touch infinity
@@ -109,33 +102,43 @@ class simpleNN:
         
         Z2 = np.add(self.W2.dot(A1) , self.b2) #equivalent to Z2 = W2.A1 + b1     Note that A1 is NOT transposed.
 
-        #normalize Z2 as well, to ensure that e^Z does not reach infinity during softmax
-        Z2_max = np.absolute(Z2).max(0,keepdims=True)
-        Z2_normalized  = np.divide(Z2,Z2_max)
+        A2 = snakeMaths.softmax(Z2, softmax_axis=0) #should be of shape (3,m) 
 
-        A2 = snakeMaths.softmax(Z2_normalized, softmax_axis=0) #should be of shape (3,m) 
-
-        return Z1_normalized, A1, Z2_normalized, A2
+        return Z1_normalized, A1, Z2, A2
 
     #Entry point - this is where the modelContainer passes the state data to the Model
-    def predictNextStep(self,stateVector):
-        #this will only be called AFTER
-        return self.runModel(stateVector)
+    def predictNextStep(self,stateVector, reward, isTraining, currentIterationCounter, idealDecision):
 
+        #update epsilon value to select a random outcome with a decreasing probability
+        self.epsilon = 1/(1 + (currentIterationCounter/100)) #1/(1+ x/100) will tend towards 0 steadily as x increases
 
-    def updateLossValue(self, A2, y_train, numSamples):
+        if isTraining:
+            # model is training, so weights will be updated via forward prop and backprop
+            # when the model makes a decision, ignore that decision and get the model to explore with a certain epsilon probability.
+            # as the iteration counter increases, epsilon tends to 0 
+            return self.getRandomExploreDecisionByEpsilon( self.trainModel(stateVector,idealDecision)) #the output of tranModel is already made binary
+
+        else:
+            # model is in test. Weights will not be updated and only forward prop will be run
+            # Note that the model does not need the Exploration at test phase, so the epsilon parameter will NOT be relevant 
+            return self.runModel(stateVector)
+
+        return 0
+
+    def updateLossValue(self, A2, y_train):
 
         #A2 is of the format [0.4,0.3,0.3] and y_train is already one-Hot -> [0,1,0]
 
         #get the indices from the predictions, corresponding to the outputs y of interest.
-        probabilityOfExpectedOutput = np.multiply(A2,y_train.T) #get the probability of ONLY the expected output via element-wise multiplication
+        probabilityOfExpectedOutput = np.multiply(A2,y_train) #get the probability of ONLY the expected output via element-wise multiplication
 
         #using negative log likelihood method to calculate loss value for all the training examples
         try:
             lossVector = -1 * np.log10(A2)   
             #self.currentLoss = (np.multiply(lossVector,yOneHot.T).sum())/numExamples #get the loss against the indices of the expected output value.
-            self.currentLoss = np.sum((np.multiply(lossVector,y_train.T)))/numSamples
+            self.currentLoss = np.sum((np.multiply(lossVector,y_train.T)))
 
+            #print(self.currentLoss)
             #self.currentLoss = (-1 * np.sum(np.log(probabilityOfExpectedOutput)))/numExamples
             #Note - Do NOT attempt an element wise multiplication and THEN take a log of that, because most elements there will be 0, and log(0) is -infinity
 
@@ -162,7 +165,7 @@ class simpleNN:
         #IMPORTANT - keepdims = True ensures that dB1 is of shape (12,1) and not (12,)
 
         #print(self.W1.shape)
-        dW1 = dZ1.dot(x_train)
+        dW1 = dZ1.dot(x_train.T)
 
         return dW2, dB2, dW1, dB1
 
@@ -193,16 +196,16 @@ class simpleNN:
         #Note - we want to curb the initialization loss by ensuring that the initial random weights don't end up taking extreme values that are "confidently wrong". Initial biases can be set to 0.
         #Weights will multiplied by 0.1 to ensure that the initialization of the weights is as close to 0 as possible, and the network is basically making random guesses without training.
 
-        W1 = np.random.randn(self.hidden_layer_neurons,self.input_layer_neurons) * 0.01 #12 neurons of 81 dimensions, to align with input matrix
+        W1 = np.random.randn(self.hidden_layer_neurons,self.input_layer_neurons) * 0.1 #12 neurons of 81 dimensions, to align with input matrix
         
         #NOTE - unlike Supervised learning, we want the model to be confidently wrong and then learn. Hence we can initialize higher values
-        #b1 = np.random.randn(self.hidden_layer_neurons,1) #Note - adding (x,y) creates a list of lists.
-        b1 = np.zeros((self.hidden_layer_neurons,1)) #reduced to 0 to remove initialization bias and ensure uniformly random predictions
+        b1 = np.random.randn(self.hidden_layer_neurons,1) #Note - adding (x,y) creates a list of lists.
+        #b1 = np.zeros((self.hidden_layer_neurons,1)) #reduced to 0 to remove initialization bias and ensure uniformly random predictions
 
-        W2 = np.random.randn(self.output_layer_neurons,self.hidden_layer_neurons) * 0.01
+        W2 = np.random.randn(self.output_layer_neurons,self.hidden_layer_neurons) * 0.1
         
-        #b2 = np.random.randn(self.output_layer_neurons,1)
-        b2 = np.zeros((self.output_layer_neurons,1)) #reduced to 0 to remove initialization bias and ensure uniformly random predictions
+        b2 = np.random.randn(self.output_layer_neurons,1)
+        #b2 = np.zeros((self.output_layer_neurons,1)) #reduced to 0 to remove initialization bias and ensure uniformly random predictions
 
         return W1, b1, W2, b2
 

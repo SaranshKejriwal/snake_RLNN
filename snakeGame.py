@@ -14,8 +14,8 @@ class snakeGame:
     #Game setup
 
     # Window size
-    window_x = 480
-    window_y = 480
+    window_x = 180
+    window_y = 180
 
     #Game colors
     black = pygame.Color(0, 0, 0)
@@ -24,7 +24,7 @@ class snakeGame:
     green = pygame.Color(0, 255, 0)
     blue = pygame.Color(0, 0, 255)
 
-    snake = snakeObject()
+    snake = snakeObject(window_x, window_y)
 
     #speed of the snake movement - faster for training
     gameSpeed = 200
@@ -41,7 +41,7 @@ class snakeGame:
         return
 
 
-    def startGame(self, model, isTraining):#isTraining will dictate whether to pass the decision params to training or not.
+    def startGame(self, model, isTraining, dataGatheringIterationLimit):#isTraining will dictate whether to pass the decision params to training or not.
 
 
         # Initialising pygame
@@ -58,14 +58,22 @@ class snakeGame:
         fps = pygame.time.Clock()
 
         if isTraining:
-            self.gameSpeed = 100 #faster runthrough for training
+            self.gameSpeed = 30000 #faster runthrough for data gathering
         else:
             self.gameSpeed = 100
 
         print("starting new game...")
 
+        iterationCounter = 0
+
         #infinite loop that continues until the game is over
         while True:
+
+            iterationCounter += 1
+            #if the modelContainer is in Data Gathering mode, we need to stop the game after a certain set of iterations
+            if isTraining and iterationCounter > dataGatheringIterationLimit:
+                print('Data Gathering complete. Ending the training game...')
+                break #break the infinite loop after the set number of iterations is reached
 
             #reset the isGrowing variable, which will only be set to true when the snake reaches the food
             isGrowing = False
@@ -121,6 +129,7 @@ class snakeGame:
 
             self.snake.changeDirection(modelDecision)
 
+        self.quitGame()
         #return the final score once the While loop breaks and the game is over.
         return self.currentScore #unreachable code
 
@@ -133,13 +142,17 @@ class snakeGame:
         print("Game Over. Final Score is ", self.currentScore)
         return self.currentScore
 
+    #this will be called when we want to stop gathering data. A new game will be started to test the trained model.
+    def quitGame(self):
+        pygame.quit()
+
     #while in training mode, reset the game upon snake death, whilst the training continues...
     def resetGame(self):
         #print("Training...: Final score is ", self.currentScore)
 
         self.trainingGameCounter += 1
 
-        self.snake.resetSnake()
+        self.snake.resetSnake(self.window_x,self.window_y)
         self.currentScore = 0
 
     # displaying Score function
