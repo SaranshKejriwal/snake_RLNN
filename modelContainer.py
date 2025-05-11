@@ -1,3 +1,4 @@
+from pyexpat import model
 import random
 import numpy as np
 
@@ -57,7 +58,7 @@ class modelContainer:
 
 
     def testModel(self):
-        self.game.startGame(self, isTraining = False) #model already trained - params will not update weights
+        self.game.startGame(self, False, self.dataGatheringIterationLimit) #model already trained
 
 
     #this will be called post training - somewhat redundant at the moment
@@ -96,8 +97,9 @@ class modelContainer:
 
         else:
             #this is the simple neural network that we want to train.
-            return self.simpleNeuralNetwork.predictNextStep(decisionRewardCalculator.getStateVectorForNetwork(gameWindowX, gameWindowY, snakeHead, snakeBody, snakeDirection, foodLocation))
-        
+            modelDecision =  self.simpleNeuralNetwork.predictNextStep(decisionRewardCalculator.getStateVectorForNetwork(gameWindowX, gameWindowY, snakeHead, snakeBody, snakeDirection, foodLocation))
+            print('model Decision:', modelDecision)
+            return modelDecision
 
 
 
