@@ -39,11 +39,11 @@ class modelContainer:
         self.dataGatheringIterationLimit = lastGatheringIteration
         self.qTableContainer = QTableContainer(self.game.getWindowX(), self.game.getWindowY())
 
-    def startGatheringData(self):
+    def startTrainingRuns(self):
         print('Training Data collection started...')
         self.game.startGame(self, True, self.dataGatheringIterationLimit) #isTraining is set to True
 
-    def trainModel(self, trainingIterations):
+    def trainNeuralNetwork(self, trainingIterations):
 
         #self.game.startGame(self, isTraining = True)
         print("Starting model training...")
@@ -78,7 +78,27 @@ class modelContainer:
     def predictNextStep(self, gameWindowX, gameWindowY, snakeHead, snakeBody, snakeDirection, foodLocation, currentReward, isTraining):
         
         #use the newly created Q table to get the action with the best reward.
-        return self.qTableContainer.predictNextStep(snakeHead, snakeDirection, decisionRewardCalculator.getDangerVector(gameWindowX, gameWindowY, snakeHead, snakeBody, snakeDirection), foodLocation)
+        currentStateVector = decisionRewardCalculator.getStandardStateVectorForNetwork(gameWindowX, gameWindowY, snakeHead, snakeBody, snakeDirection, foodLocation)
+        modelDecision = self.qTableContainer.predictNextStep(currentStateVector)
+
+        #calculate the nextStateVector and reward from the modelDecision,
+        #use these to update the Q values in the Q table
+        #This means that the model is in a constant training state, until we opt to turn the training off.
+
+        nextSnakeHead = snakeMaths.getNextSnakeHeadByDecision(snakeHead,snakeDirection,modelDecision)
+        nextSnakeDirection = snakeMaths.processDirectionDecision(snakeDirection, modelDecision)
+
+        #note - there is a corner case wherein the foodLocation can have the old value if the food is eaten.
+        
+        #get the next state Vector, which will be passed while updating the Q table
+        nextStateVector = decisionRewardCalculator.getStandardStateVectorForNetwork(gameWindowX, gameWindowY, nextSnakeHead, snakeBody, nextSnakeDirection, foodLocation)
+
+        #get reward from the model's decision
+        rewardFromDecision = decisionRewardCalculator.getRewardFromDirection(gameWindowX, gameWindowY, snakeBody, foodLocation, nextSnakeHead)
+
+        self.qTableContainer.updateQTable(currentStateVector, nextStateVector, modelDecision, rewardFromDecision)
+
+        return modelDecision
         
         #ignoring the neural network models
         '''

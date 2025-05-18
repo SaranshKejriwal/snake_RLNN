@@ -46,13 +46,13 @@ def getDangerVector(gameWindowX, gameWindowY, snakeHead, snakeBody, snakeDirecti
     dangerVector = np.array([0,0,0])#each index corresponding to Left/No_Action/Right; Initialized at 0
 
     #reward for turning left
-    dangerVector[0] = snakeMaths.isGameOver( np.add(snakeHead, (10 * snakeMaths.turnSnakeLeft(snakeDirection[0],snakeDirection[1]))), snakeBody, gameWindowX, gameWindowY) #turnLeft was called. Would snake die?
+    dangerVector[0] = snakeMaths.isGameOver(snakeMaths.getNextSnakeHeadByDecision(snakeHead,snakeDirection,snakeMaths.left), snakeBody, gameWindowX, gameWindowY) #turnLeft was called. Would snake die?
 
     #reward for no turning
-    dangerVector[1] = snakeMaths.isGameOver(np.add(snakeHead, (10 * (snakeDirection))), snakeBody, gameWindowX, gameWindowY) #snake continued in current direction. Would snake die?
+    dangerVector[1] = snakeMaths.isGameOver(snakeMaths.getNextSnakeHeadByDecision(snakeHead,snakeDirection,snakeMaths.noAction), snakeBody, gameWindowX, gameWindowY) #snake continued in current direction. Would snake die?
 
     #reward for turning right
-    dangerVector[2] = snakeMaths.isGameOver(np.add(snakeHead, (10 * snakeMaths.turnSnakeRight(snakeDirection[0],snakeDirection[1]))), snakeBody, gameWindowX, gameWindowY) #turnRight was called. Would snake die?
+    dangerVector[2] = snakeMaths.isGameOver(snakeMaths.getNextSnakeHeadByDecision(snakeHead,snakeDirection,snakeMaths.right), snakeBody, gameWindowX, gameWindowY) #turnRight was called. Would snake die?
 
     return dangerVector #this function will be called directly when loss needs to be calculated
 
@@ -116,32 +116,40 @@ def getStandardStateVectorForNetwork(gameWindowX, gameWindowY, snakeHead, snakeB
 
     stateVector = np.array([
             
-        snakeHead[0], #snakeHead X coordinate - normalized to (0,1) by dividing with gameWindowX
-        snakeHead[1], #the number of possible values here are the same as the total number of cells
+        snakeHead[0]//10, #snakeHead X Cell 
+        snakeHead[1]//10, #the number of possible values here are the same as the total number of cells
 
-        snakeDirection, #direction can have 4 possible values -> [1,0] , [-1,0] , [0,1], [0,-1]
+        getQTableDirectionIndex(snakeDirection), #direction can have 4 possible values -> [1,0] , [-1,0] , [0,1], [0,-1]
 
-        dangerVector, #dangerVector - can have 8 possible values -> 2^3
+        getQTableDangerIndex(dangerVector), #dangerVector - can have 8 possible values -> 2^3
 
-        foodLocation[0],#foodLocation X coordinate; No normalization here.
-        foodLocation[1] #the number of possible values here are the same as the total number of cells
-            
+        foodLocation[0]//10,#foodLocation X coordinate; No normalization here.
+        foodLocation[1]//10 #the number of possible values here are the same as the total number of cells
+   
         ])
-        
     '''
-    Define the state.
-    State can have the following values
-    - snakeHead X coordinate - normalized to (0,1) by dividing with gameWindowX
-    - snakeHead Y coordinate - normalized to (0,1) by dividing with gameWindowY
-
-    - NOT REQUIRED - snakeBody coordinates - This is covered in the dangerVector 
-        
-    - DirectionX - direct ingestion of 1/-1 value
-    - DirectionY - direct ingestion of 1/-1 value
-
-    - Danger directions - is it dangerous to turn left from current position? or turn right? or go straight? - THIS will account for the body of the snake
-
-    - foodLocation X coordinate - normalized to (0,1) by dividing with gameWindowX
-    - foodLocation Y coordinate - normalized to (0,1) by dividing with gameWindowY
+    These are all the parameters that define the state-space index in the Q table, in this order.
     '''
+
     return stateVector
+
+
+
+
+#very primitive function to convert a 2D direction vector into an array index
+def getQTableDirectionIndex(snakeDirection):
+
+    #order of indices is Right, Left, Up, Down
+    if (snakeDirection == snakeMaths.snakeMovingRight).all():
+        return 0
+    elif (snakeDirection == snakeMaths.snakeMovingLeft).all():
+        return 1
+    elif (snakeDirection == snakeMaths.snakeMovingUp).all():
+        return 2
+    elif (snakeDirection == snakeMaths.snakeMovingDown).all():
+        return 3
+
+#dangerVector is expected to be a 3D binary array at all times
+def getQTableDangerIndex(dangerVector):
+    tableIndex = dangerVector[0] + 2*dangerVector[1] + 4*dangerVector[2]
+    return tableIndex

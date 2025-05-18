@@ -12,16 +12,16 @@ from trainingDataContainer import trainingDataContainer
 dataContainer = trainingDataContainer()
 
 #a neural network cannot be trained on one example at a time. We need to prepare thousands of example that should be sent to the training loop AT ONCE, for the network to converge at all.
-model = modelContainer(dataContainer, 5000)#gather 5000 examples of what the deterministic algorithm would've done
+model = modelContainer(dataContainer, 50000)#run game for set number of iterations
 
-#model.startGatheringData()
+model.startTrainingRuns()
 
 #once the model has found enough examples
-#model.trainModel(10000) #modelContainer already has an instance of trainingDataContainer, so no arguments are required. We're training the model over 10000 iterations
+#model.trainNeuralNetwork(10000) #modelContainer already has an instance of trainingDataContainer, so no arguments are required. We're training the model over 10000 iterations
 
-print ('Model Training Complete.')
+#print ('Model Training Complete.')
 
-model.testModel()
+#model.testModel()
 
 
 

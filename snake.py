@@ -50,18 +50,19 @@ class snakeObject:
     #ingest the directionVector from the game and turn the snake accordingly
     def changeDirection(self,directionDecisionVector):
 
-        #create a clone of the current decision vector, to avoid reference of a variable to its own latest value
-        currentXDirection = self.snakeDirection[0]#X
-        currentYDirection = self.snakeDirection[1]#Y
+        self.snakeDirection = snakeMaths.processDirectionDecision(self.snakeDirection, directionDecisionVector)
 
+        #create a clone of the current decision vector, to avoid reference of a variable to its own latest value
+        #currentXDirection = self.snakeDirection[0]#X
+        #currentYDirection = self.snakeDirection[1]#Y
+        '''
         if (directionDecisionVector == self.left).all():
             self.snakeDirection = snakeMaths.turnSnakeLeft(currentXDirection,currentYDirection)
         elif(directionDecisionVector == self.right).all():
             self.snakeDirection = snakeMaths.turnSnakeRight(currentXDirection,currentYDirection)
         elif(directionDecisionVector != self.noAction).all():
             print("snake could not parse decision vector:", directionDecisionVector)
-
-
+        '''
         return 0 
 
 

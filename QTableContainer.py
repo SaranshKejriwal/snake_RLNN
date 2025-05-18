@@ -1,7 +1,6 @@
 '''
 This class will contain the Qtable for each of the combinations of states that the game can be in, and actions that the snake can take.
 '''
-from curses.ascii import TAB
 import numpy as np
 import snakeMaths
 
@@ -15,6 +14,10 @@ class QTableContainer:
     gamma = 0.95 #discount factor
     
     actionCount = 3 #this will always be 3 because the snake only has 3 possible decision outcomes.
+
+    #these will track the latest decision taken by the model in any state. It will be referred while updating table
+    latestModelDecisionIndex = 0
+
 
     def __init__(self, windowX, windowY):
 
@@ -44,14 +47,11 @@ class QTableContainer:
     
         return
 
-    def predictNextStep(self, snakeHead, snakeDirection, dangerVector, foodLocation ):
+    def predictNextStep(self, stateVector):
 
-        directionIndex = self.getQTableDirectionIndex(snakeDirection)
-        dangerIndex = self.getQTableDangerIndex(dangerVector)
-
-        #return the action with the max 
-        modelDecisionIndex = np.argmax(self.qTable[snakeHead[0]//10, snakeHead[1]//10,directionIndex, dangerIndex,foodLocation[0]//10, foodLocation[1]//10])
-        modelDecision = self.getDirectionFromIndex(modelDecisionIndex)
+        #Directly pass the vector as an index to the table and return the index with the max reward
+        self.latestModelDecisionIndex = np.argmax(self.qTable[tuple(stateVector)])
+        modelDecision = self.getDirectionFromIndex(latestModelDecisionIndex)
 
         return self.getRandomExploreDecisionByEpsilon(modelDecision)
 
@@ -70,30 +70,18 @@ class QTableContainer:
         else:
             return modelDecision
 
-    #this is supposed to be the important function which will update the reward values in the table, 
+    #this is supposed to be the IMPORTANT function which will update the reward values in the table, 
     #the reward value update will be as per the random explorations that the snake is able to do, AND for different locations of the food
-    def updateQTable(self):
+    def updateQTable(self, currentStateVector, nextStateVector, modelDecision, rewardFromDecision):
+        #modelContainer instance will be calling this function, once the decision is taken.
+
+        #took an action given a state. 
+        oldQValue = self.qTable[tuple(currentStateVector)][self.latestModelDecisionIndex]
+
+        #Need to update the Q value of the Next state, with the max Q value in the next state.
+        self.qTable[tuple(currentStateVector), :]
+
         pass
-
-
-
-    #very primitive function to convert a 2D direction vector into an array index
-    def getQTableDirectionIndex(self, snakeDirection):
-
-        #order of indices is Right, Left, Up, Down
-        if (snakeDirection == snakeMaths.snakeMovingRight).all():
-            return 0
-        elif (snakeDirection == snakeMaths.snakeMovingLeft).all():
-            return 1
-        elif (snakeDirection == snakeMaths.snakeMovingUp).all():
-            return 2
-        elif (snakeDirection == snakeMaths.snakeMovingDown).all():
-            return 3
-
-    #dangerVector is expected to be a 3D binary array at all times
-    def getQTableDangerIndex(self, dangerVector):
-        tableIndex = dangerVector[0] + 2*dangerVector[1] + 4*dangerVector[2]
-        return tableIndex
 
 
     def getDirectionFromIndex(self, maxRewardIndex):

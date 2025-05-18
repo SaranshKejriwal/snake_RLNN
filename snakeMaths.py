@@ -39,6 +39,26 @@ def turnSnakeRight(currentXDirection, currentYDirection):
 
     return np.array([currentYDirection, -1 * currentXDirection])
 
+def processDirectionDecision(currentDirection, directionDecisionVector):
+
+    if (directionDecisionVector == left).all():
+        return turnSnakeLeft(currentDirection[0],currentDirection[1])
+    elif(directionDecisionVector == right).all():
+        return turnSnakeRight(currentDirection[0],currentDirection[1])
+    elif(directionDecisionVector != noAction).all():
+        print("snake could not parse decision vector:", directionDecisionVector)
+        return currentDirection
+
+    #code comes here only if decision equals noAction
+    return currentDirection
+
+def getNextSnakeHeadByDirection(currentSnakeHeadLocation, snakeDirection):
+    return np.add(currentSnakeHeadLocation, (10*snakeDirection))
+
+def getNextSnakeHeadByDecision(currentSnakeHeadLocation, currentSnakeDirection, decisionVector):
+
+    nextSnakeDirection = processDirectionDecision(currentSnakeDirection, decisionVector)
+    return np.add(currentSnakeHeadLocation, (10*nextSnakeDirection))
 
 #check if the game is lost because the snake bit itself or the map boundary walls
 def isGameOver(snakeHead, snakeBody, gameWindowX, gameWindowY):

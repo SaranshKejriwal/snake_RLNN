@@ -34,6 +34,9 @@ class snakeGame:
     #current score is a running placeholder for the score while the game is ongoing. Resets to 0 
     currentScore = 0
 
+    #max Score will hold the max score achieved across all games 
+    maxScore = 0
+
     trainingGameCounter = 1 #this will track how many games were played during training
 
     def __init__(self):
@@ -41,7 +44,8 @@ class snakeGame:
         return
 
 
-    def startGame(self, model, isTraining, dataGatheringIterationLimit):#isTraining will dictate whether to pass the decision params to training or not.
+    def startGame(self, model, isTraining, dataGatheringIterationLimit):
+        #isTraining will dictate whether to pass the decision params to training or not.
 
 
         # Initialising pygame
@@ -84,6 +88,11 @@ class snakeGame:
                 isGrowing = True #while moving, the snake body queue will not pop
                 self.food.respawn(self.snake.getSnakeBody()) #move the food immediately to another random location
                 self.currentScore += 1 #increment score by 1 
+
+                if(self.currentScore > self.maxScore):
+                    self.maxScore = self.currentScore
+                    print('New Score Record:', self.maxScore)
+
             else:
                 isGrowing = False
 
@@ -165,17 +174,17 @@ class snakeGame:
         # score_surface
         score_surface = score_font.render('Score : ' + str(self.currentScore), True, color)
 
-        games_surface = score_font.render('Games : ' + str(self.trainingGameCounter), True, color)
+        #games_surface = score_font.render('Games : ' + str(self.trainingGameCounter), True, color)
         #games_surface = score_font.render('Length : ' + str(len(self.snake.getSnakeBody())), True, color)
 
         # create a rectangular object for the text
         # surface object
         score_rect = score_surface.get_rect()
-        games_rect = games_surface.get_rect()
+        #games_rect = games_surface.get_rect()
     
         # displaying text
-        #self.game_window.blit(score_surface, score_rect)
-        self.game_window.blit(games_surface, games_rect)
+        self.game_window.blit(score_surface, score_rect)
+        #self.game_window.blit(games_surface, games_rect)
 
     def getWindowX(self):
         return self.window_x
