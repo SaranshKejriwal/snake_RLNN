@@ -7,6 +7,12 @@ right = np.array([0,0,1]) #turning Left, relative to the current direction of mo
 
 allDecisions = np.array([left , noAction, right]) #corresponding to Turn Left, Do Nothing and Turn Right
 
+#constant values to indicate movement Direction of the snake
+snakeMovingRight = np.array([1,0])
+snakeMovingLeft = np.array([-1,0])
+snakeMovingUp = np.array([0,1])
+snakeMovingDown = np.array([0,-1])
+
 #evaluate the current Direction, and turn the snake LEFT, relative to that direction.
 def turnSnakeLeft(currentXDirection, currentYDirection):
     '''

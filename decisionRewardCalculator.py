@@ -16,11 +16,11 @@ def getHighestRewardDecision(gameWindowX, gameWindowY, snakeHead, snakeBody, sna
     maxRewardIndex = np.argmax(rewardVector)
 
     if maxRewardIndex == 0: #reward for turning left is highest
-        return np.array([1,0,0]) #self.left
+        return snakeMaths.left 
     elif maxRewardIndex == 1: #reward for not turning is highest
-        return np.array([0,1,0]) #self.noAction
+        return snakeMaths.noAction 
     elif maxRewardIndex == 2:#reward for turning right is highest
-        return np.array([0,0,1])# self.right 
+        return snakeMaths.Right
 
     return 0 #unreachable code ideally
 
@@ -70,7 +70,7 @@ def getRewardFromDirection(gameWindowX, gameWindowY, snakeBody, foodLocation, sn
     return reward
 
 #this method will convert the input parameters into a normalized state vector for the model to ingest
-def getStateVectorForNetwork(gameWindowX, gameWindowY, snakeHead, snakeBody, snakeDirection, foodLocation):
+def getNormalizedStateVectorForNetwork(gameWindowX, gameWindowY, snakeHead, snakeBody, snakeDirection, foodLocation):
         
     dangerVector = getDangerVector(gameWindowX, gameWindowY, snakeHead, snakeBody, snakeDirection)
 
@@ -88,6 +88,43 @@ def getStateVectorForNetwork(gameWindowX, gameWindowY, snakeHead, snakeBody, sna
 
         foodLocation[0]/gameWindowX,#foodLocation X coordinate - normalized to (0,1) by dividing with gameWindowX
         foodLocation[1]/gameWindowY
+            
+        ])
+        
+    '''
+    Define the state.
+    State can have the following values
+    - snakeHead X coordinate - normalized to (0,1) by dividing with gameWindowX
+    - snakeHead Y coordinate - normalized to (0,1) by dividing with gameWindowY
+
+    - NOT REQUIRED - snakeBody coordinates - This is covered in the dangerVector 
+        
+    - DirectionX - direct ingestion of 1/-1 value
+    - DirectionY - direct ingestion of 1/-1 value
+
+    - Danger directions - is it dangerous to turn left from current position? or turn right? or go straight? - THIS will account for the body of the snake
+
+    - foodLocation X coordinate - normalized to (0,1) by dividing with gameWindowX
+    - foodLocation Y coordinate - normalized to (0,1) by dividing with gameWindowY
+    '''
+    return stateVector
+
+#this method will convert the input parameters into a standard state vector for the Q table to process
+def getStandardStateVectorForNetwork(gameWindowX, gameWindowY, snakeHead, snakeBody, snakeDirection, foodLocation):
+        
+    dangerVector = getDangerVector(gameWindowX, gameWindowY, snakeHead, snakeBody, snakeDirection)
+
+    stateVector = np.array([
+            
+        snakeHead[0], #snakeHead X coordinate - normalized to (0,1) by dividing with gameWindowX
+        snakeHead[1], #the number of possible values here are the same as the total number of cells
+
+        snakeDirection, #direction can have 4 possible values -> [1,0] , [-1,0] , [0,1], [0,-1]
+
+        dangerVector, #dangerVector - can have 8 possible values -> 2^3
+
+        foodLocation[0],#foodLocation X coordinate; No normalization here.
+        foodLocation[1] #the number of possible values here are the same as the total number of cells
             
         ])
         

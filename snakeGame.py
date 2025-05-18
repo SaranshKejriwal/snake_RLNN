@@ -14,8 +14,8 @@ class snakeGame:
     #Game setup
 
     # Window size
-    window_x = 180
-    window_y = 180
+    window_x = 100 #this is the size of the window in pixels, NOT the number of cells
+    window_y = 100
 
     #Game colors
     black = pygame.Color(0, 0, 0)
@@ -176,3 +176,9 @@ class snakeGame:
         # displaying text
         #self.game_window.blit(score_surface, score_rect)
         self.game_window.blit(games_surface, games_rect)
+
+    def getWindowX(self):
+        return self.window_x
+
+    def getWindowY(self):
+        return self.window_y

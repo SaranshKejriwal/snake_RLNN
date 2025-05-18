@@ -7,6 +7,7 @@ from snakeGame import snakeGame
 from trainingDataContainer import trainingDataContainer
 from simpleNN import simpleNN
 from reinfNN import reinfNN
+from QTableContainer import QTableContainer
 import decisionRewardCalculator
 import snakeMaths
 
@@ -36,6 +37,7 @@ class modelContainer:
     def __init__(self,trainingDataContainer, lastGatheringIteration):
         self.dataContainer = trainingDataContainer
         self.dataGatheringIterationLimit = lastGatheringIteration
+        self.qTableContainer = QTableContainer(self.game.getWindowX(), self.game.getWindowY())
 
     def startGatheringData(self):
         print('Training Data collection started...')
@@ -75,6 +77,11 @@ class modelContainer:
 
     def predictNextStep(self, gameWindowX, gameWindowY, snakeHead, snakeBody, snakeDirection, foodLocation, currentReward, isTraining):
         
+        #use the newly created Q table to get the action with the best reward.
+        return self.qTableContainer.predictNextStep(snakeHead, snakeDirection, decisionRewardCalculator.getDangerVector(gameWindowX, gameWindowY, snakeHead, snakeBody, snakeDirection), foodLocation)
+        
+        #ignoring the neural network models
+        '''
         #increase the IterationCounter to stop the data gather, OR to reduce the epsilon with each iteration in the reinforcement learning model
         self.currentIterationCounter += 1
 
@@ -92,19 +99,17 @@ class modelContainer:
             #get the ideal highest decision to feed to the model - this seems like standard supervised learning.
             idealDecision = decisionRewardCalculator.getHighestRewardDecision(gameWindowX, gameWindowY, snakeHead, snakeBody, snakeDirection, foodLocation)
 
-            self.dataContainer.addDatapoint(decisionRewardCalculator.getStateVectorForNetwork(gameWindowX, gameWindowY, snakeHead, snakeBody, snakeDirection, foodLocation), idealDecision)
+            self.dataContainer.addDatapoint(decisionRewardCalculator.getNormalizedStateVectorForNetwork(gameWindowX, gameWindowY, snakeHead, snakeBody, snakeDirection, foodLocation), idealDecision)
             return idealDecision
 
         else:
             #this is the simple neural network that we want to train.
-            modelDecision =  self.simpleNeuralNetwork.predictNextStep(decisionRewardCalculator.getStateVectorForNetwork(gameWindowX, gameWindowY, snakeHead, snakeBody, snakeDirection, foodLocation))
+            modelDecision =  self.simpleNeuralNetwork.predictNextStep(decisionRewardCalculator.getNormalizedStateVectorForNetwork(gameWindowX, gameWindowY, snakeHead, snakeBody, snakeDirection, foodLocation))
             print('model Decision:', modelDecision)
             return modelDecision
 
-
-
         #this is a test code to run the initial model
         #return snakeMaths.getRandomDirectionDecision()
-
+        '''
 
 
