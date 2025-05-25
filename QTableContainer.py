@@ -10,12 +10,13 @@ class QTableContainer:
     epsilonDecay = 0.9995 #epsilon will reduce by a geometric progression of 0.995, not an arithmetic progression like before.
     lowestEpsilon = 0.01 #lower threshold for randomness
 
-    learning_rate = 0.9 #used to update the new Q values.     
+    alpha = 0.9 #used to update the new Q values.     
     gamma = 0.95 #discount factor
     
     actionCount = 3 #this will always be 3 because the snake only has 3 possible decision outcomes.
 
-    #these will track the latest decision taken by the model in any state. It will be referred while updating table
+    #these will track the latest decision taken by the model in any state. 
+    #It will be referred while updating table
     latestModelDecisionIndex = 0
 
 
@@ -25,8 +26,10 @@ class QTableContainer:
         cellsY = windowY // 10 #get number of cells after dividing by cell size
 
         #this is where all rewards for all actions in all states will be stored.
-        self.qTable = np.zeros([cellsX, cellsY, 4, 8, cellsX,cellsY,3])
-        #all values will be initialized at 0 and then adjusted over time.
+        self.qTable = np.ones([cellsX, cellsY, 4, 8, cellsX,cellsY,3]) * (-1000)
+        #all values will be initialized at -1000 and then adjusted over time.
+        #Note - We cannot initialzie the QTable at zeros, because all reward values are negative.
+        #Since there is no positive reward, zero will always seem like the most rewarding option
 
         #print('Q table shape:',self.qTable.shape)
 
@@ -51,7 +54,10 @@ class QTableContainer:
 
         #Directly pass the vector as an index to the table and return the index with the max reward
         self.latestModelDecisionIndex = np.argmax(self.qTable[tuple(stateVector)])
-        modelDecision = self.getDirectionFromIndex(latestModelDecisionIndex)
+        modelDecision = self.getDirectionFromIndex(self.latestModelDecisionIndex)
+
+        #latestModelDecisionIndex will be referred later when the Q table is being updated.
+        #Note that because of epsilon, the model will be more likely to explore and update multiple Q-values for the future.
 
         return self.getRandomExploreDecisionByEpsilon(modelDecision)
 
@@ -75,11 +81,15 @@ class QTableContainer:
     def updateQTable(self, currentStateVector, nextStateVector, modelDecision, rewardFromDecision):
         #modelContainer instance will be calling this function, once the decision is taken.
 
-        #took an action given a state. 
+
+        #took an action given a state. We use this to update the QValue, if initialized at 0, using Bellman equation.
         oldQValue = self.qTable[tuple(currentStateVector)][self.latestModelDecisionIndex]
 
         #Need to update the Q value of the Next state, with the max Q value in the next state.
-        self.qTable[tuple(currentStateVector), :]
+        nextStateMaxReward = np.max(self.qTable[tuple(nextStateVector), :]) 
+
+        #update the Q table using the Bellman equation:
+        self.qTable[tuple(currentStateVector)][self.latestModelDecisionIndex] = (1 - self.alpha) * oldQValue + self.alpha *(reward + self.gamma * nextStateMaxReward)
 
         pass
 
