@@ -14,8 +14,8 @@ class snakeGame:
     #Game setup
 
     # Window size
-    window_x = 100 #this is the size of the window in pixels, NOT the number of cells
-    window_y = 100
+    window_x = 50 #this is the size of the window in pixels, NOT the number of cells
+    window_y = 50
 
     #Game colors
     black = pygame.Color(0, 0, 0)
@@ -79,6 +79,9 @@ class snakeGame:
                 print('Data Gathering complete. Ending the training game...')
                 break #break the infinite loop after the set number of iterations is reached
 
+            if iterationCounter % 10000 ==0:
+                print('Training Iterations:', iterationCounter)
+
             #reset the isGrowing variable, which will only be set to true when the snake reaches the food
             isGrowing = False
 
@@ -88,7 +91,7 @@ class snakeGame:
                 isGrowing = True #while moving, the snake body queue will not pop
                 self.food.respawn(self.snake.getSnakeBody()) #move the food immediately to another random location
                 self.currentScore += 1 #increment score by 1 
-
+                print('score:',self.currentScore,' ; Training Games:', self.trainingGameCounter)
                 if(self.currentScore > self.maxScore):
                     self.maxScore = self.currentScore
                     print('New Score Record:', self.maxScore)

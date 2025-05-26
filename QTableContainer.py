@@ -7,7 +7,10 @@ import snakeMaths
 class QTableContainer:
 
     epsilon = 1 #start with randomly exploring all possibilities and decay the randomness
-    epsilonDecay = 0.9995 #epsilon will reduce by a geometric progression of 0.995, not an arithmetic progression like before.
+    epsilonDecay = 0.99995 #epsilon will reduce by a geometric progression of 0.995, not an arithmetic progression like before.
+    #Note that a decay factor of 0.9995 drops to <1% in just 10k iterations, 
+    #This means that the snake will end up spinning in circles because that's the only path discovered.
+    
     lowestEpsilon = 0.01 #lower threshold for randomness
 
     alpha = 0.9 #used to update the new Q values.     
@@ -32,7 +35,7 @@ class QTableContainer:
         #Note - We cannot initialzie the QTable at zeros, because all reward values are negative.
         #Since there is no positive reward, zero will always seem like the most rewarding option
 
-        #print('Q table shape:',self.qTable.shape)
+        print('Q table shape:',self.qTable.shape)
 
         '''
         In a 100x100 size window, there are 10x10 cells for the head and food.
