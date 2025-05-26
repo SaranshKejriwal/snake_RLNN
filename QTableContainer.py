@@ -85,24 +85,13 @@ class QTableContainer:
     def updateQTable(self, currentStateVector, nextStateVector, modelDecision, rewardFromDecision):
         #modelContainer instance will be calling this function, once the decision is taken.
 
-
         #took an action given a state. We use this to update the QValue, if initialized at 0, using Bellman equation.
         oldQValue = self.qTable[currentStateVector[0],currentStateVector[1],currentStateVector[2],currentStateVector[3],currentStateVector[4],currentStateVector[5]][self.latestModelDecisionIndex]
 
-
         nextStateMaxReward = np.max(self.qTable[nextStateVector[0],nextStateVector[1],nextStateVector[2],nextStateVector[3],nextStateVector[4],nextStateVector[5], :]) 
-        
-        #print ('old Q value',oldQValue)
-        #print('next state max Reward',nextStateMaxReward)
-
-        #print('reward from decision', rewardFromDecision)
-        
 
         #update the Q table of the current state using the Bellman equation:
         self.qTable[currentStateVector[0],currentStateVector[1],currentStateVector[2],currentStateVector[3],currentStateVector[4],currentStateVector[5]][self.latestModelDecisionIndex] = (1 - self.alpha) * oldQValue + self.alpha *(rewardFromDecision + self.gamma * nextStateMaxReward)
-        
-        #print('updated reward vector:',self.qTable[tuple(currentStateVector)])
-        #print('\n')
 
     def getDirectionFromIndex(self, maxRewardIndex):
 
