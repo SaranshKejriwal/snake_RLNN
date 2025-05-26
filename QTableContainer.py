@@ -87,19 +87,10 @@ class QTableContainer:
 
 
         #took an action given a state. We use this to update the QValue, if initialized at 0, using Bellman equation.
-        oldQValue = self.qTable[tuple(currentStateVector)][self.latestModelDecisionIndex]
+        oldQValue = self.qTable[currentStateVector[0],currentStateVector[1],currentStateVector[2],currentStateVector[3],currentStateVector[4],currentStateVector[5]][self.latestModelDecisionIndex]
 
-        #print('current state vector:',currentStateVector)
-        #print(currentStateVector.shape)
-        #print(nextStateVector.shape)
-        #print(self.qTable.shape)
-        #print('current state reward vector:',self.qTable[tuple(currentStateVector)])
 
-        #print('next state vector:',nextStateVector)
-        #Need to update the Q value of the Next state, with the max Q value in the next state.
-
-        #print('next state reward vector:',self.qTable[tuple(nextStateVector)])
-        nextStateMaxReward = np.max(self.qTable[tuple(nextStateVector), :]) 
+        nextStateMaxReward = np.max(self.qTable[nextStateVector[0],nextStateVector[1],nextStateVector[2],nextStateVector[3],nextStateVector[4],nextStateVector[5], :]) 
         
         #print ('old Q value',oldQValue)
         #print('next state max Reward',nextStateMaxReward)
@@ -107,8 +98,8 @@ class QTableContainer:
         #print('reward from decision', rewardFromDecision)
         
 
-        #update the Q table using the Bellman equation:
-        self.qTable[tuple(currentStateVector)][self.latestModelDecisionIndex] = (1 - self.alpha) * oldQValue + self.alpha *(rewardFromDecision + self.gamma * nextStateMaxReward)
+        #update the Q table of the current state using the Bellman equation:
+        self.qTable[currentStateVector[0],currentStateVector[1],currentStateVector[2],currentStateVector[3],currentStateVector[4],currentStateVector[5]][self.latestModelDecisionIndex] = (1 - self.alpha) * oldQValue + self.alpha *(rewardFromDecision + self.gamma * nextStateMaxReward)
         
         #print('updated reward vector:',self.qTable[tuple(currentStateVector)])
         #print('\n')

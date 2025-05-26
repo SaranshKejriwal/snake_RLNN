@@ -21,7 +21,7 @@ model.startTrainingRuns()
 
 #print ('Model Training Complete.')
 
-#model.testModel()
+model.testModel()
 
 
 

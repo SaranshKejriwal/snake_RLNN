@@ -79,7 +79,7 @@ class snakeGame:
                 print('Data Gathering complete. Ending the training game...')
                 break #break the infinite loop after the set number of iterations is reached
 
-            if iterationCounter % 10000 ==0:
+            if isTraining and iterationCounter % 10000 ==0:
                 print('Training Iterations:', iterationCounter)
 
             #reset the isGrowing variable, which will only be set to true when the snake reaches the food
@@ -91,7 +91,7 @@ class snakeGame:
                 isGrowing = True #while moving, the snake body queue will not pop
                 self.food.respawn(self.snake.getSnakeBody()) #move the food immediately to another random location
                 self.currentScore += 1 #increment score by 1 
-                print('score:',self.currentScore,' ; Training Games:', self.trainingGameCounter)
+                #print('score:',self.currentScore,' ; Training Games:', self.trainingGameCounter)
                 if(self.currentScore > self.maxScore):
                     self.maxScore = self.currentScore
                     print('New Score Record:', self.maxScore)
