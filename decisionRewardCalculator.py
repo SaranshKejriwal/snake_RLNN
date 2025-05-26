@@ -62,7 +62,10 @@ def getRewardFromDirection(gameWindowX, gameWindowY, snakeBody, foodLocation, sn
 
     distanceFromFood = np.linalg.norm(snakeNextHead - foodLocation) #this calculates the euclidean distance between the next head position and the food
 
-    reward -= distanceFromFood #the higher the distance, the lower the net reward
+    #reward -= distanceFromFood #the higher the distance, the lower the net reward
+
+    #introducing a net positive reward to get closer to the food, so that the Q-table can be initialized at 0
+    reward = 1/ (distanceFromFood + 1) #+1 is added to avoid +infinity condition where distance is 0
 
     if snakeMaths.isGameOver(snakeNextHead,snakeBody, gameWindowX, gameWindowY):
         reward -= 1000 #reduce 1000 from the reward if the snake dies. Assumption is that 1000 is comparable to the max Euclidean distance of 680, in a 480x480 board
