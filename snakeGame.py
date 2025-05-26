@@ -92,6 +92,7 @@ class snakeGame:
                 if(self.currentScore > self.maxScore):
                     self.maxScore = self.currentScore
                     print('New Score Record:', self.maxScore)
+                    print('Training games played:', self.trainingGameCounter)
 
             else:
                 isGrowing = False

@@ -119,16 +119,17 @@ def getStandardStateVectorForNetwork(gameWindowX, gameWindowY, snakeHead, snakeB
 
     stateVector = np.array([
             
-        snakeHead[0]//10, #snakeHead X Cell 
-        snakeHead[1]//10, #the number of possible values here are the same as the total number of cells
+        snakeHead[0]//10 - 1 , #snakeHead X Cell 
+        snakeHead[1]//10 - 1, #the number of possible values here are the same as the total number of cells
+        #1 is subtracted because index starts at 0 and goes upto 9
 
         getQTableDirectionIndex(snakeDirection), #direction can have 4 possible values -> [1,0] , [-1,0] , [0,1], [0,-1]
 
         getQTableDangerIndex(dangerVector), #dangerVector - can have 8 possible values -> 2^3
 
-        foodLocation[0]//10,#foodLocation X coordinate; No normalization here.
-        foodLocation[1]//10 #the number of possible values here are the same as the total number of cells
-   
+        foodLocation[0]//10 - 1,#foodLocation X coordinate; No normalization here.
+        foodLocation[1]//10 - 1 #the number of possible values here are the same as the total number of cells
+        #1 is subtracted because index starts at 0 and goes upto 9
         ])
     '''
     These are all the parameters that define the state-space index in the Q table, in this order.

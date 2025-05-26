@@ -11,7 +11,7 @@ class QTableContainer:
     lowestEpsilon = 0.01 #lower threshold for randomness
 
     alpha = 0.9 #used to update the new Q values.     
-    gamma = 0.95 #discount factor
+    gamma = 0.75 #discount factor
     
     actionCount = 3 #this will always be 3 because the snake only has 3 possible decision outcomes.
 
@@ -26,8 +26,9 @@ class QTableContainer:
         cellsY = windowY // 10 #get number of cells after dividing by cell size
 
         #this is where all rewards for all actions in all states will be stored.
-        self.qTable = np.ones([cellsX, cellsY, 4, 8, cellsX,cellsY,3]) * (-1000)
-        #all values will be initialized at -1000 and then adjusted over time.
+        #self.qTable = np.ones([cellsX, cellsY, 4, 8, cellsX,cellsY,3]) * (-500)
+        self.qTable = np.zeros([cellsX, cellsY, 4, 8, cellsX,cellsY,3])
+        #all values will be initialized at -500 and then adjusted over time to less negative values.
         #Note - We cannot initialzie the QTable at zeros, because all reward values are negative.
         #Since there is no positive reward, zero will always seem like the most rewarding option
 
@@ -85,14 +86,29 @@ class QTableContainer:
         #took an action given a state. We use this to update the QValue, if initialized at 0, using Bellman equation.
         oldQValue = self.qTable[tuple(currentStateVector)][self.latestModelDecisionIndex]
 
+        #print('current state vector:',currentStateVector)
+        #print(currentStateVector.shape)
+        #print(nextStateVector.shape)
+        #print(self.qTable.shape)
+        #print('current state reward vector:',self.qTable[tuple(currentStateVector)])
+
+        #print('next state vector:',nextStateVector)
         #Need to update the Q value of the Next state, with the max Q value in the next state.
+
+        #print('next state reward vector:',self.qTable[tuple(nextStateVector)])
         nextStateMaxReward = np.max(self.qTable[tuple(nextStateVector), :]) 
+        
+        #print ('old Q value',oldQValue)
+        #print('next state max Reward',nextStateMaxReward)
+
+        #print('reward from decision', rewardFromDecision)
+        
 
         #update the Q table using the Bellman equation:
-        self.qTable[tuple(currentStateVector)][self.latestModelDecisionIndex] = (1 - self.alpha) * oldQValue + self.alpha *(reward + self.gamma * nextStateMaxReward)
-
-        pass
-
+        self.qTable[tuple(currentStateVector)][self.latestModelDecisionIndex] = (1 - self.alpha) * oldQValue + self.alpha *(rewardFromDecision + self.gamma * nextStateMaxReward)
+        
+        #print('updated reward vector:',self.qTable[tuple(currentStateVector)])
+        #print('\n')
 
     def getDirectionFromIndex(self, maxRewardIndex):
 

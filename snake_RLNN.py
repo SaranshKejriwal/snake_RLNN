@@ -12,7 +12,7 @@ from trainingDataContainer import trainingDataContainer
 dataContainer = trainingDataContainer()
 
 #a neural network cannot be trained on one example at a time. We need to prepare thousands of example that should be sent to the training loop AT ONCE, for the network to converge at all.
-model = modelContainer(dataContainer, 50000)#run game for set number of iterations
+model = modelContainer(dataContainer, 500000)#run game for set number of iterations
 
 model.startTrainingRuns()
 

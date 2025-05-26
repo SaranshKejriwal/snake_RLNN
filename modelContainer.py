@@ -85,6 +85,11 @@ class modelContainer:
         #use these to update the Q values in the Q table
         #This means that the model is in a constant training state, until we opt to turn the training off.
 
+        if not(isTraining):
+            #there is no need to compute the values below that are needed to train the model, 
+            #we can only get the value from the TRAINED Q Table.
+            return modelDecision
+
         nextSnakeHead = snakeMaths.getNextSnakeHeadByDecision(snakeHead,snakeDirection,modelDecision)
         nextSnakeDirection = snakeMaths.processDirectionDecision(snakeDirection, modelDecision)
 
